@@ -650,7 +650,7 @@ function startAuth() {
     client_id: config.clientId,
     response_type: 'token',
     redirect_uri: redirectUri,
-    scope: 'https://graph.microsoft.com/Files.Read',
+    scope: 'https://graph.microsoft.com/Files.Read allSites.Read',
     response_mode: 'fragment',
   });
   const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
@@ -692,19 +692,26 @@ async function loadUpdates() {
   hideError();
 
   try {
-    // Get file
-    const fileRes = await gFetch(`https://graph.microsoft.com/v1.0/me/drive/root:/${encodeURIComponent(config.filePath)}`);
-    if (!fileRes.ok) throw new Error(`Файл не знайдено: ${fileRes.status}`);
+    // Use SharePoint URL directly via Graph API
+    const shareUrl = 'https://avangardcoipl-my.sharepoint.com/:x:/g/personal/i_leskova_avangardco_ua/IQAgFmFT2F3KT6jPnYwZtiL0AeUmMzRPW_IeH04TzK8CYX0';
+    const encoded = btoa(shareUrl).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const sharesUrl = `https://graph.microsoft.com/v1.0/shares/u!${encoded}/driveItem`;
+
+    const fileRes = await gFetch(sharesUrl);
+    if (!fileRes.ok) {
+      const err = await fileRes.json();
+      throw new Error(`Файл не знайдено: ${fileRes.status} — ${err.error?.message || ''}`);
+    }
     const file = await fileRes.json();
 
     // Get workbook worksheets
-    const wsRes = await gFetch(`https://graph.microsoft.com/v1.0/me/drive/items/${file.id}/workbook/worksheets`);
+    const wsRes = await gFetch(`https://graph.microsoft.com/v1.0/drives/${file.parentReference.driveId}/items/${file.id}/workbook/worksheets`);
     const wsData = await wsRes.json();
     const sheet = wsData.value.find(s => s.name === 'Updates');
     if (!sheet) throw new Error('Лист "Updates" не знайдено');
 
     // Get used range
-    const rangeRes = await gFetch(`https://graph.microsoft.com/v1.0/me/drive/items/${file.id}/workbook/worksheets/${sheet.id}/usedRange`);
+    const rangeRes = await gFetch(`https://graph.microsoft.com/v1.0/drives/${file.parentReference.driveId}/items/${file.id}/workbook/worksheets/${sheet.id}/usedRange`);
     const rangeData = await rangeRes.json();
     const values = rangeData.values;
 
