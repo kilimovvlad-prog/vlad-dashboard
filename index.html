@@ -693,9 +693,7 @@ async function loadUpdates() {
 
   try {
     // Use SharePoint URL directly via Graph API
-    const shareUrl = 'https://avangardcoipl-my.sharepoint.com/:x:/g/personal/i_leskova_avangardco_ua/IQAgFmFT2F3KT6jPnYwZtiL0AeUmMzRPW_IeH04TzK8CYX0';
-    const encoded = btoa(shareUrl).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    const sharesUrl = `https://graph.microsoft.com/v1.0/shares/u!${encoded}/driveItem`;
+    const sharesUrl = `https://graph.microsoft.com/v1.0/shares/u!aHR0cHM6Ly9hdmFuZ2FyZGNvaXBsLW15LnNoYXJlcG9pbnQuY29tLzp4Oi9nL3BlcnNvbmFsL2lfbGVza292YV9hdmFuZ2FyZGNvX3VhL0lRQWdGbUZUMkYzS1Q2alBuWXdadGlMMEFlVW1NelJQV19JZUgwNFR6SzhDWVgw/driveItem`;
 
     const fileRes = await gFetch(sharesUrl);
     if (!fileRes.ok) {
