@@ -618,12 +618,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadConfig() {
   try {
-    const saved = sessionStorage.getItem('vlad_cfg');
+    const saved = localStorage.getItem('vlad_cfg');
     if (saved) config = JSON.parse(saved);
-  } catch(e) {}
+  } catch(e) { console.error('loadConfig error:', e); }
 }
 function saveConfig() {
-  try { sessionStorage.setItem('vlad_cfg', JSON.stringify(config)); } catch(e) {}
+  try { localStorage.setItem('vlad_cfg', JSON.stringify(config)); } catch(e) { console.error('saveConfig error:', e); }
 }
 
 // ===== AUTH =====
@@ -644,15 +644,18 @@ function saveConfigAndAuth() {
 }
 
 function startAuth() {
-  if (!config.clientId) { showSetup(); return; }
+  if (!config.clientId) { alert('Введи Client ID!'); showSetup(); return; }
+  const redirectUri = 'https://kilimovvlad-prog.github.io/vlad-dashboard/';
   const params = new URLSearchParams({
     client_id: config.clientId,
     response_type: 'token',
-    redirect_uri: window.location.href.split('?')[0].split('#')[0],
+    redirect_uri: redirectUri,
     scope: 'https://graph.microsoft.com/Files.Read',
     response_mode: 'fragment',
   });
-  window.location.href = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+  const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+  console.log('Redirecting to:', url);
+  window.location.href = url;
 }
 
 function checkExistingToken() {
